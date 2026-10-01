@@ -20,41 +20,43 @@ class Fabricantes:
         return resp.json().get("estabelecimento")
 
 
-    def analize_ati_prin(self,data)-> dict:
+    def analize_ati_prin(self,data)-> list:
         ati_prin = data['atividade_principal']['descricao']
 
         for term in self.search:
             if term in ati_prin:
                 return {
-                    'status': True,
-                    'term' : term
+                    'status_prin': True,
+                    'term_prin' : ati_prin
                 }
             
         return {
-            'status' : False,
-            'term': None
+            'status_prin' : False,
+            'term_prin': None
         }
 
 
     def analize_ati_sec(self, data) ->dict:
         list_sec = data.get('atividades_secundarias',[])
-        if len(list_sec) == 0:
-            return {
-                    'status' : False,
-                    'term': None
-            }
+        results = []
+        if list_sec is None or len(list_sec) == 0:
+            return [{
+                    'status_sec_1' : False,
+                    'term_sec_1': None
+            }]
         for ati_sec in list_sec:
 
             descri_sec = ati_sec['descricao']
 
             for term in self.search:
+                i = len(results) +1
                 if term in descri_sec:
-                    return {
-                    'status' : True,
-                    'term': term
+                    
+                    dic_aux = {
+                    f'status_sec_{i}' : True,
+                    f'term_sec_{i}': descri_sec
                     }
-                
-        return {
-            'status' : False,
-            'term': None
-        }
+                    results.append(dic_aux)
+                    break
+
+        return results
