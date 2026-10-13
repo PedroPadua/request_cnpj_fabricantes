@@ -21,8 +21,8 @@ class RequestClient:
             self.slots.popleft()
 
         if len(self.slots) >= self.max_requests:
-            sleep_time = self.window_seconds - (now - self.slots[0])
-            print(f'Aguardando {sleep_time} segundos antes de realizar o request.')
+            sleep_time = self.window_seconds - (now - self.slots[0]) + 2
+            print(f'Aguardando {round(sleep_time, 2)} segundos antes de realizar o request.')
             time.sleep(max(sleep_time,0))
         
         self.slots.append(time.monotonic())

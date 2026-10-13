@@ -13,19 +13,23 @@ class PipeFabricantes:
             list_ati = self.request.list_ati(resp)
             result = self.conf.compare(list_ati)
 
-            return {
+            dic_retur =  {
                 'cnpj' : str(cnpj),
                 **result,
                 'erro' : None
             }
-        
+            print(dic_retur)
+            return dic_retur
         except CNPJNaoEncontrado as erro:
 
-            return {                 
+            dic_retur = {                 
                 'cnpj' : str(cnpj),
                 'status':'erro',
                 'erro' : str(erro)
             }
+
+            print(dic_retur)
+            return dic_retur
 
 
 

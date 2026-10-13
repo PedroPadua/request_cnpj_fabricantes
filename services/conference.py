@@ -20,7 +20,7 @@ class ConferenceCNPJ:
             for word in self.target_words
             for atividade in ati_totais
         )
-
         return {
-            'status': 'fabricante' if is_manufacturer else 'não_fabricante'
+            'status': 'fabricante' if is_manufacturer else 'não_fabricante',
+            'atividade': ati_totais if is_manufacturer else None
         }
