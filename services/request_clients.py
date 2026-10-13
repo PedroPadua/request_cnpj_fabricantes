@@ -1,15 +1,37 @@
 import requests
+from collections import deque
 from utils.exceptions import *
 from config import *
+import time
 
 class RequestClient:
     def __init__(self):
         self.search = ['Fabricação','Confecção','Produção','Preparação','Beneficiamento','Processamento','Torrefação','Moagem','Refino','Fundição','Forjamento','Usinagem','Montagem','Impressão','Reciclagem','Transformação','Elaboração','Manipulação']
         self.url = api_url
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self.slots = deque()
+
+
+
+    def  _wait_for_slot(self):
+        now = time.monotonic()
+
+        while self.slots and now - self.slots[0] >= self.window_seconds:
+            self.slots.popleft()
+
+        if len(self.slots) >= self.max_requests:
+            sleep_time = self.window_seconds - (now - self.slots[0])
+            print(f'Aguardando {sleep_time} segundos antes de realizar o request.')
+            time.sleep(max(sleep_time,0))
+        
+        self.slots.append(time.monotonic())
+
 
 
     def request_cnpj(self,cnpj : str)->dict: 
-
+        self._wait_for_slot()
+        print(f'Iniciando o request do cnpj -> {cnpj}')
         body_request = f'{self.url}{cnpj}'
         resp = requests.get(body_request)
 
@@ -24,6 +46,8 @@ class RequestClient:
         if estabelecimento is None:
             raise CNPJNaoEncontrado(f'Resposta sem estabelecimento: {cnpj}')
         return estabelecimento
+
+
 
     def list_ati(self, resp):
         list_ati = []
