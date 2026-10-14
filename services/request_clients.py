@@ -1,4 +1,5 @@
 import requests
+from requests.exceptions import Timeout
 from collections import deque
 from utils.exceptions import *
 from config import *
@@ -30,16 +31,26 @@ class RequestClient:
 
 
     def request_cnpj(self,cnpj : str)->dict: 
-        self._wait_for_slot()
-        print(f'Iniciando o request do cnpj -> {cnpj}')
         body_request = f'{self.url}{cnpj}'
-        resp = requests.get(body_request)
+        while True:
+            self._wait_for_slot()
+            print(f'Iniciando o request do cnpj -> {cnpj}')
+            try:
+                resp = requests.get(body_request, timeout=60)
+            except Timeout:
+                print(f'Timeout ao consultar {cnpj}; tentando novamente.')
+                continue
+
+            if resp.status_code == 429:
+                wait_seconds = self.window_seconds + 2
+                print(f'Limite da cnpj.ws atingido; aguardando {wait_seconds} segundos para repetir {cnpj}.')
+                time.sleep(wait_seconds)
+                continue
+
+            break
 
         if resp.status_code == 404:
             raise CNPJNaoEncontrado(f'CNPJ não encontrado {cnpj}')
-
-        if resp.status_code == 429:
-            raise RateLimitError('Limite da cnpj.ws atingido')
 
         resp.raise_for_status()
         estabelecimento = resp.json().get("estabelecimento")
